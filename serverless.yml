@@ -1,4 +1,4 @@
-service: my-shop-test1
+service: aws-test-shop-30
 
 frameworkVersion: "3"
 
@@ -19,7 +19,7 @@ plugins:
 
 custom:
   client:
-    bucketName: my-shop-test1
+    bucketName: aws-test-shop-30
     distributionFolder: dist
   s3BucketName: ${self:custom.client.bucketName}
 
@@ -50,33 +50,17 @@ resources:
         Bucket:
           Ref: WebAppS3Bucket
         PolicyDocument:
-
-        Statement:
-          - Sid: "AllowPublicAccess"
-            Effect: Allow
-            Action: s3:GetObject
-            Resource: arn:aws:s3:::${self:custom.s3BucketName}/*
-            Principal: "*"
-          - Sid: "AllowLegacyOAIReadOnly"
-            Effect: Allow
-            Action: s3:GetObject
-            Resource: arn:aws:s3:::${self:custom.s3BucketName}/*
-            Principal:
-              AWS:
-                Fn::Join:
-                  - " "
-                  - - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity"
-                    - !Ref OriginAccessIdentity
-          - Sid: "AllowCloudFrontAccessIdentity"
-            Effect: Allow
-            Action: s3:GetObject
-            Resource: arn:aws:s3:::${self:custom.s3BucketName}/*
-            Principal:
-              AWS:
-                Fn::Join:
-                  - " "
-                  - - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity"
-                    - !Ref OriginAccessIdentity
+          Statement:
+            - Sid: "AllowCloudFrontAccessIdentity"
+              Effect: Allow
+              Action: s3:GetObject
+              Resource: arn:aws:s3:::${self:custom.s3BucketName}/*
+              Principal:
+                AWS:
+                  Fn::Join:
+                    - " "
+                    - - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity"
+                      - !Ref OriginAccessIdentity
 
     OriginAccessIdentity:
       Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
