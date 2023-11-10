@@ -2,6 +2,7 @@ import React from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import axios from "axios";
+import { ErrorCode } from "~/utils/utils";
 
 type CSVFileImportProps = {
   url: string;
@@ -26,26 +27,46 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
   const uploadFile = async () => {
     console.log("uploadFile to", url);
 
-    if (file) {
+    if (!file) {
+      return;
+    }
+
+    try {
+      const authToken = localStorage.getItem("authorization_token");
+      const headers = {
+        ...(authToken && {
+          Authorization: `Basic ${authToken}`,
+        }),
+      };
       const response = await axios({
         method: "GET",
         url,
         params: {
           name: encodeURIComponent(file.name),
         },
-        headers: {
-          "Content-Type": "text/csv",
-        },
+        headers,
       });
-      console.log("File to upload: ", file.name);
+      console.log("File to upload: ", file?.name);
       console.log("Uploading to: ", response.data);
-      const result = await axios.put(response.data, file, {
-        headers: {
-          "Content-Type": "text/csv",
-        },
+      const result = await fetch(response.data, {
+        method: "PUT",
+        body: file,
       });
       console.log("Result: ", result);
       setFile(undefined);
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        switch (e?.response?.status) {
+          case ErrorCode.Unauthorized:
+            alert("User is not authorized");
+            break;
+          case ErrorCode.Forbidden:
+            alert("Authorization is not passed");
+            break;
+          default:
+            throw e;
+        }
+      }
     }
   };
   return (

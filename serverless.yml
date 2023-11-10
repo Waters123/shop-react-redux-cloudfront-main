@@ -1,13 +1,13 @@
-service: aws-test-shop-30
+service: aws-test-shop-40
 
 frameworkVersion: "3"
 
 provider:
   name: aws
-  runtime: nodejs14.x
   region: eu-west-1
+  runtime: nodejs14.x
   # setup profile for AWS CLI.
-  # profile: node-aws
+  profile: default
 
 plugins:
   - serverless-finch
@@ -15,19 +15,16 @@ plugins:
   # Existing plugin (https://www.npmjs.com/package/serverless-single-page-app-plugin) doesn't have invalidate cache feature that often used during CI/CD events.
   # How to build your own plugins: https://www.serverless.com/framework/docs/providers/aws/guide/plugins#service-local-plugin
   - serverless-single-page-app-plugin
-  - serverless-s3-cleaner
 
 custom:
   client:
-    bucketName: aws-test-shop-30
+    bucketName: aws-test-shop-40
     distributionFolder: dist
+    indexDocument: index.html
   s3BucketName: ${self:custom.client.bucketName}
 
   ## Serverless-single-page-app-plugin configuration:
   s3LocalPath: ${self:custom.client.distributionFolder}/
-  serverless-s3-cleaner:
-    buckets:
-      - ${self:custom.client.bucketName}
 
 resources:
   Resources:
@@ -36,7 +33,8 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ${self:custom.s3BucketName}
-        AccessControl: PublicRead
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
         WebsiteConfiguration:
           IndexDocument: index.html
           ErrorDocument: index.html
@@ -118,7 +116,7 @@ resources:
             DefaultTTL: 0
           ## The certificate to use when viewers use HTTPS to request objects.
           ViewerCertificate:
-            CloudFrontDefaultCertificate: true
+            CloudFrontDefaultCertificate: "true"
           ## Uncomment the following section in case you want to enable logging for CloudFront requests
           # Logging:
           #   IncludeCookies: 'false'
